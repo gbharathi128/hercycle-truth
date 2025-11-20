@@ -1,8 +1,7 @@
 streamlit
 python-dotenv
-google-generativeai
-langgraph
-protobuf
-matplotlib
 pandas
 numpy
+matplotlib
+google-generativeai==0.7.2
+protobuf
