@@ -11,4 +11,6 @@ if st.button("Send"):
     result = graph.invoke({
         "messages": [{"role": "user", "content": query}]
     })
-    st.write(result["messages"][-1])
+
+    ai_response = result["messages"][-1]
+    st.write(ai_response)
