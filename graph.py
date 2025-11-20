@@ -19,8 +19,13 @@ class AgentState(TypedDict):
 from tools.pcos_tools import tools
 tool_node = ToolNode(tools)
 
-model = genai.GenerativeModel("gemini-1.5-pro-exp-0827")
-model_with_tools = model.bind_tools(tools)
+    # Updated for Gemini Nov 2025 — bind_tools removed
+    model = genai.GenerativeModel(
+        "gemini-1.5-pro-exp-0827",
+        generation_config={"temperature": 0.7},
+        tools=tools  # ← this is the new way
+    )
+    model_with_tools = model  # no need for bind_tools anymore
 
 def supervisor(state):
     system_prompt = """You are HerCycle Truth — a deeply caring, empathetic AI sister for women with PCOS.
