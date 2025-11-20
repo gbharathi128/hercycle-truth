@@ -3,112 +3,61 @@ import operator
 import inspect
 from typing import TypedDict, Annotated
 
-from dotenv import load_dotenv
 import google.generativeai as genai
+from dotenv import load_dotenv
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-# Load .env
+from tools.pcos_tools import pcos_search, myth_checker, symptom_explain
+
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# ------------------------------
-# 1. IMPORT YOUR PYTHON TOOLS
-# ------------------------------
 
-from tools.pcos_tools import tools   # This must be a list of Python functions
+# -------------------
+# TOOLS → Gemini Schema
+# -------------------
 
+TOOLS = [pcos_search, myth_checker, symptom_explain]
 
-# ------------------------------
-# 2. CONVERT PYTHON FUNCTIONS → GEMINI TOOL SCHEMA
-# ------------------------------
-
-def python_to_schema(fn):
-    """Convert a Python function signature → Gemini JSON schema."""
+def to_schema(fn):
     sig = inspect.signature(fn)
-    props = {}
-    required = []
+    props, req = {}, []
 
-    for name, param in sig.parameters.items():
-        props[name] = {"type": "string"}  # Simple mapping (all inputs as str)
-        required.append(name)
+    for name in sig.parameters:
+        props[name] = {"type": "string"}
+        req.append(name)
 
     return {
-        "type": "object",
-        "properties": props,
-        "required": required
+        "name": fn.__name__,
+        "description": fn.__doc__,
+        "input_schema": {"type": "object", "properties": props, "required": req}
     }
 
 
-gemini_tools = []
-for fn in tools:
-    gemini_tools.append({
-        "name": fn.__name__,
-        "description": fn.__doc__ or "PCOS tool",
-        "input_schema": python_to_schema(fn)
-    })
+gemini_tools = [to_schema(fn) for fn in TOOLS]
 
-
-# ------------------------------
-# 3. INIT GEMINI MODEL
-# ------------------------------
 
 model = genai.GenerativeModel(
     model_name="gemini-1.5-pro",
     tools=gemini_tools,
-    generation_config={"temperature": 0.7}
+    generation_config={"temperature": 0.6}
 )
 
 
-# ------------------------------
-# 4. MESSAGE FORMATTER
-# ------------------------------
+# -------------------
+# Utility
+# -------------------
 
-def to_gemini_messages(messages):
-    """Convert LangGraph-style messages → Gemini format."""
-    out = []
+def convert(messages):
+    gemini_msgs = []
     for m in messages:
-        out.append({
-            "role": m["role"],
-            "parts": [{"text": m["content"]}]
-        })
-    return out
+        gemini_msgs.append({"role": m["role"], "parts": [{"text": m["content"]}]})
+    return gemini_msgs
 
 
-# ------------------------------
-# 5. SUPERVISOR NODE
-# ------------------------------
-
-def supervisor(state):
-    system_prompt = """
-You are HerCycle Truth ♀️ — a deeply caring, empathetic AI sister for women with PCOS.
-
-Core Rules:
-- Always respond kindly and supportively.
-- Never give direct medical advice — instead say “Please consult your doctor for medical guidance.”
-- Debunk myths gently.
-- Respect cultural contexts (India, Africa, Latin America).
-- Always support emotional wellbeing.
-    """
-
-    # Convert everything to Gemini format
-    msgs = to_gemini_messages(
-        [{"role": "user", "content": system_prompt}] + state["messages"]
-    )
-
-    chat = model.start_chat(history=msgs)
-    response = chat.send_message("")
-
-    return {"messages": [response]}
-
-
-# ------------------------------
-# 6. TOOL CALL DETECTION
-# ------------------------------
-
-def has_tool_call(response):
-    """Return True if Gemini triggered a tool."""
+def detect_tool_call(response):
     try:
         parts = response.candidates[0].content.parts
         return any(getattr(p, "function_call", None) for p in parts)
@@ -116,48 +65,58 @@ def has_tool_call(response):
         return False
 
 
-# ------------------------------
-# 7. TOOL EXECUTION NODE
-# ------------------------------
+# -------------------
+# Agent Nodes
+# -------------------
+
+def supervisor(state):
+    sys = """
+You are HerCycle Truth — an emotionally supportive AI sister for women with PCOS.
+
+Rules:
+- Be empathetic
+- Never give medical advice
+- Cite trusted medical bodies
+- Fight misinformation gently
+- Use tools when needed
+"""
+    msgs = convert(
+        [{"role": "system", "content": sys}] + state["messages"]
+    )
+    chat = model.start_chat(history=msgs)
+    result = chat.send_message("")
+
+    return {"messages": [result]}
+
 
 def tool_executor(state):
-    """Execute Python tool requested by Gemini."""
-    resp = state["messages"][-1]
-    parts = resp.candidates[0].content.parts
+    last = state["messages"][-1]
+    parts = last.candidates[0].content.parts
 
     for p in parts:
         if hasattr(p, "function_call"):
-            fn_name = p.function_call.name
+            name = p.function_call.name
             args = p.function_call.args
 
-            # Find matching Python function
-            fn = next(f for f in tools if f.__name__ == fn_name)
+            fn = next(f for f in TOOLS if f.__name__ == name)
+            output = fn(**args)
 
-            result = fn(**args)
-
-            # Return as tool message
-            return {
-                "messages": [{
-                    "role": "tool",
-                    "content": str(result)
-                }]
-            }
+            return {"messages": [{"role": "tool", "content": str(output)}]}
 
     return {"messages": []}
 
 
-# ------------------------------
-# 8. LANGGRAPH STATE
-# ------------------------------
+# -------------------
+# State
+# -------------------
 
 class AgentState(TypedDict):
     messages: Annotated[list, operator.add]
-    language: str
 
 
-# ------------------------------
-# 9. BUILD LANGGRAPH WORKFLOW
-# ------------------------------
+# -------------------
+# Build Graph
+# -------------------
 
 graph_builder = StateGraph(AgentState)
 
@@ -168,13 +127,11 @@ graph_builder.add_edge(START, "supervisor")
 
 graph_builder.add_conditional_edges(
     "supervisor",
-    lambda s: "tools" if has_tool_call(s["messages"][-1]) else END
+    lambda s: "tools" if detect_tool_call(s["messages"][-1]) else END
 )
 
 graph_builder.add_edge("tools", "supervisor")
 
-# Memory
 memory = SqliteSaver.from_conn_string(":memory:")
 
-# FINAL GRAPH
 graph = graph_builder.compile(checkpointer=memory)
