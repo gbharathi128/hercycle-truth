@@ -1,10 +1,5 @@
 # reminder.py
-"""
-Simple JSON-backed reminders. Not a push-notification system — shows reminders in-app.
-"""
-
-import json
-import os
+import json, os
 from datetime import datetime
 from typing import List, Dict
 
