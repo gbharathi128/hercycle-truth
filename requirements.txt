@@ -1,10 +1,5 @@
 streamlit
-langgraph
-langgraph-checkpoint-sqlite
-google-generativeai
-chromadb
-beautifulsoup4
-requests
-pypdf
-faiss-cpu
 python-dotenv
+google-generativeai
+langgraph
+protobuf
