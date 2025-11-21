@@ -11,13 +11,13 @@ st.set_page_config(
 # --- LOAD ASSETS ---
 ASSETS = "assets"
 
-bg_image = os.path.join(ASSETS, "bg1.jpg")
+bg_image = os.path.join(ASSETS, "banner_home.jpg")
 logo = os.path.join(ASSETS, "logo.png")
-diet_img = os.path.join(ASSETS, "diet.png")
-yoga_img = os.path.join(ASSETS, "yoga.png")
-reminder_img = os.path.join(ASSETS, "reminder.png")
-goals_img = os.path.join(ASSETS, "goals.png")
-chat_img = os.path.join(ASSETS, "chat.png")
+diet_img = os.path.join(ASSETS, "day1.png")
+yoga_img = os.path.join(ASSETS, "yoga1.png")
+reminder_img = os.path.join(ASSETS, "bell_icon.png")
+goals_img = os.path.join(ASSETS, "exercise1.png")
+chat_img = os.path.join(ASSETS, "day2.png")
 
 # --- CUSTOM CSS FOR PRETTY UI ---
 page_bg = f"""
