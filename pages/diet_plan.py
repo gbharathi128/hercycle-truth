@@ -1,32 +1,44 @@
-# diet_plan.py
-from typing import Dict
+import streamlit as st
+from pathlib import Path
 
-BASE_WEEK = {
-    "Monday":    {"Breakfast": "Oats porridge + chia + berries", "Lunch": "Millet roti + dal + salad", "Dinner": "Grilled paneer + steamed veggies"},
-    "Tuesday":   {"Breakfast": "Ragi dosa + sambar", "Lunch": "Brown rice + rajma + cucumber", "Dinner": "Quinoa bowl with chickpeas"},
-    "Wednesday": {"Breakfast": "Protein smoothie (spinach+banana+protein)", "Lunch": "Whole-wheat chapati + veg curry", "Dinner": "Baked tofu + greens"},
-    "Thursday":  {"Breakfast": "Greek yogurt + seeds + fruit", "Lunch": "Millet khichdi + stir-fried veg", "Dinner": "Mixed bean salad"},
-    "Friday":    {"Breakfast": "Poha with peas + peanuts", "Lunch": "Brown rice + dal + veggies", "Dinner": "Vegetable soup + multigrain toast"},
-    "Saturday":  {"Breakfast": "Besan chilla + spinach", "Lunch": "Quinoa pulao + raita", "Dinner": "Moong dal + salad"},
-    "Sunday":    {"Breakfast": "Idli + sambar", "Lunch": "Multi-grain rotis + mixed sabzi", "Dinner": "Light stew + salad"}
+# ------------------------------
+# Page Title
+# ------------------------------
+st.title("🥗 Weekly Diet Plan")
+
+# ------------------------------
+# Load Images
+# ------------------------------
+assets_path = Path("assets")
+
+day_images = {
+    "Day 1": assets_path / "day1.png",
+    "Day 2": assets_path / "day2.png",
+    "Day 3": assets_path / "day3.png",
+    "Day 4": assets_path / "day4.png",
+    "Day 5": assets_path / "day5.png",
+    "Day 6": assets_path / "day6.png",
+    "Day 7": assets_path / "day7.png",
 }
 
-def generate_weekly_diet(goal: str = "balanced", preference: str = "veg"):
+# ------------------------------
+# Intro Text
+# ------------------------------
+st.write(
     """
-    goal: 'balanced' | 'weight_loss' | 'energy'
-    preference: 'veg' | 'vegan' | 'nonveg'
+### Your Personalized 7-Day PCOS Diet Guide  
+Nutrient-dense, hormone-friendly meals designed to reduce inflammation, balance insulin levels, and boost energy.
     """
-    out = {}
-    for day, meals in BASE_WEEK.items():
-        m = meals.copy()
-        if goal == "weight_loss":
-            m["Dinner"] = m["Dinner"] + " (lighter portion)"
-        elif goal == "energy":
-            m["Breakfast"] = m["Breakfast"] + " + boiled egg/protein (optional)"
-        # preference tweaks (simple)
-        if preference == "vegan":
-            m = {k: v.replace("paneer", "tofu").replace("yogurt", "plant yogurt").replace("egg", "tofu scramble") for k,v in m.items()}
-        elif preference == "nonveg":
-            m = {k: (v + " + grilled chicken/fish") if k == "Lunch" else v for k,v in m.items()}
-        out[day] = m
-    return out
+)
+
+# ------------------------------
+# Display Each Day’s Diet
+# ------------------------------
+for day, img_path in day_images.items():
+    st.subheader(f"📅 {day}")
+    if img_path.exists():
+        st.image(str(img_path), use_column_width=True)
+    else:
+        st.warning(f"Image missing: {img_path}")
+
+    st.markdown("---")
