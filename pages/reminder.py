@@ -1,30 +1,50 @@
-# reminder.py
-import json, os
-from datetime import datetime
-from typing import List, Dict
+import streamlit as st
+from pathlib import Path
 
-REM_FILE = "reminders.json"
+# ------------------------------
+# Page Title
+# ------------------------------
+st.title("⏰ PCOS Health Reminders")
 
-def load_reminders() -> List[Dict]:
-    if not os.path.exists(REM_FILE):
-        return []
-    try:
-        with open(REM_FILE, "r") as f:
-            return json.load(f)
-    except:
-        return []
+# ------------------------------
+# Load Assets
+# ------------------------------
+assets_path = Path("assets")
+bell_icon = assets_path / "bell_icon.png"
 
-def save_reminders(reminders: List[Dict]):
-    with open(REM_FILE, "w") as f:
-        json.dump(reminders, f, indent=2)
+# ------------------------------
+# Intro Text
+# ------------------------------
+st.write(
+    """
+### Smart Daily Reminders  
+Stay consistent with your routine — it's the key to managing PCOS effectively.
+Set simple reminders for hydration, meals, medication, sleep cycle, or workout.
+    """
+)
 
-def add_reminder(text: str, time_str: str):
-    reminders = load_reminders()
-    reminders.append({"task": text, "time": time_str, "created_at": datetime.now().isoformat()})
-    save_reminders(reminders)
+# ------------------------------
+# Display Bell Icon
+# ------------------------------
+if bell_icon.exists():
+    st.image(str(bell_icon), width=120)
+else:
+    st.warning(f"Image not found: {bell_icon}")
 
-def remove_reminder(index: int):
-    reminders = load_reminders()
-    if 0 <= index < len(reminders):
-        reminders.pop(index)
-        save_reminders(reminders)
+# ------------------------------
+# Reminder Form
+# ------------------------------
+st.subheader("🔔 Create Your Reminder")
+
+reminder_text = st.text_input("Reminder Name")
+reminder_time = st.time_input("Select Time")
+
+if st.button("Save Reminder"):
+    if reminder_text.strip():
+        st.success(f"Reminder saved: **{reminder_text} at {reminder_time}**")
+    else:
+        st.error("Please enter a reminder name.")
+
+st.markdown("---")
+
+st.info("Tip: Keep reminders simple and consistent — small actions daily create big changes.")
