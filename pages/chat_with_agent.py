@@ -1,74 +1,48 @@
 import streamlit as st
-from streamlit_chat import message
+from tools.pcos_tools import ask_pcos_agent
 
-# Page settings
-st.set_page_config(
-    page_title="Chat With AI Agent",
-    page_icon="💗",
-    layout="wide"
-)
+# Page Config
+st.set_page_config(page_title="Chat With HerCycle Agent", layout="wide")
 
-# ------- Custom Aesthetic CSS -------
+# Title Section
 st.markdown("""
-<style>
-body {
-    background: linear-gradient(135deg, #ffe6ec 0%, #fff5f8 100%);
-}
-.chat-container {
-    background-color: #ffffffd9;
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(255, 120, 155, 0.15);
-}
-h1 {
-    font-family: 'Segoe UI', sans-serif;
-    color: #ff4d6d;
-    font-weight: 800;
-}
-</style>
+    <h1 style='text-align:center; color:#d63384;'>💗 Chat With Your PCOS Companion</h1>
+    <p style='text-align:center; color:#444;'>Ask anything about diet, periods, hormones, workouts, cravings, mood, skin, hair fall or lifestyle.</p>
 """, unsafe_allow_html=True)
 
-# Chat History
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# Layout
+left, right = st.columns([2, 3])
 
-# --------- Title ---------
-st.markdown("<h1 style='text-align:center;'>💗 Chat With Your AI Agent</h1>",
-            unsafe_allow_html=True)
-st.write("")
+with left:
+    st.image("assets/chat.png", use_column_width=True)
 
-# Place chat inside container
-with st.container():
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+with right:
+    st.markdown("""
+        <div style='padding:15px; background:#ffe6f2; border-radius:20px;'>
+            <b style='color:#d63384;'>✨ Your comfort zone:</b>  
+            Ask with no fear. Your agent understands PCOS deeply and replies softly like a friend.  
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Input area
-    user_input = st.text_input("💬 Type your message here…")
+st.markdown("---")
 
-    # Send button
-    if st.button("Send 💗"):
-        if user_input.strip() != "":
-            st.session_state.chat_history.append(("user", user_input))
+# Chat Box
+st.markdown("<h3 style='color:#d63384;'>💬 Ask your question</h3>", unsafe_allow_html=True)
+user_input = st.text_area("", placeholder="Type here... (Example: What should I eat during periods?)")
 
-            # Basic AI response
-            ai_reply = (
-                "✨ I'm always here for you! 💗\n"
-                "You said: **" + user_input + "**"
-            )
-            st.session_state.chat_history.append(("ai", ai_reply))
-
-    # Divider
-    st.write("----")
-
-    # Chat display
-    for sender, msg in st.session_state.chat_history:
-        if sender == "user":
-            message(msg, is_user=True, key=msg)
-        else:
-            message(msg, key=msg+"ai")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+if st.button("Ask Agent 💗"):
+    if user_input.strip() == "":
+        st.warning("Please type something to ask.")
+    else:
+        with st.spinner("Thinking with love... 💗"):
+            reply = ask_pcos_agent(user_input)
+        st.markdown("""
+            <div style='background:#fff0f7; padding:15px; border-radius:15px; margin-top:15px;'>
+                <b>HerCycle Agent 💗:</b><br>
+            </div>
+        """, unsafe_allow_html=True)
+        st.success(reply)
 
 # Footer
-st.write("---")
-st.caption("🌸 Your soft & aesthetic wellness companion AI 💗")
-
+st.markdown("<br><hr>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#999;'>Made with 💗 for every girl healing PCOS.</p>", unsafe_allow_html=True)
