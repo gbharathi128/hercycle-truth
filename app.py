@@ -1,82 +1,148 @@
 import streamlit as st
-import os
+from PIL import Image
 
-# --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="HerCycle Truth",
-    page_icon="💗",
-    layout="wide"
+    page_title="HerCycle Truth — PCOS Companion",
+    layout="wide",
 )
 
-# --- LOAD ASSETS ---
-ASSETS = "assets"
+# ----------------------------
+# Load images
+# ----------------------------
+logo = "assets/logo.png"
+banner = "assets/banner_home.png"
 
-bg_image = os.path.join(ASSETS, "banner_home.jpg")
-logo = os.path.join(ASSETS, "logo.png")
-diet_img = os.path.join(ASSETS, "day1.png")
-yoga_img = os.path.join(ASSETS, "yoga1.png")
-reminder_img = os.path.join(ASSETS, "bell_icon.png")
-goals_img = os.path.join(ASSETS, "exercise1.png")
-chat_img = os.path.join(ASSETS, "day2.png")
+# ----------------------------
+# Custom CSS for Aesthetic UI
+# ----------------------------
+st.markdown("""
+    <style>
+        /* Remove padding */
+        .block-container {
+            padding-top: 0rem !important;
+        }
 
-# --- CUSTOM CSS FOR PRETTY UI ---
-page_bg = f"""
-<style>
-[data-testid="stAppViewContainer"] {{
-    background-image: url("{bg_image}");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}}
+        /* Hero section */
+        .hero {
+            background-image: url('assets/banner_home.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 25px;
+            height: 330px;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: left;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+        }
 
-.sidebar .sidebar-content {{
-    background-color: rgba(255, 240, 245, 0.7);
-    backdrop-filter: blur(10px);
-}}
-</style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            background: rgba(255, 182, 193, 0.35);
+        }
 
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 60%;
+        }
 
-# --- SIDEBAR ---
-st.sidebar.image(logo, width=180)
-st.sidebar.markdown("## 🌸 HerCycle Truth")
-st.sidebar.write("Your PCOS Lifestyle Sister 💗")
+        .big-title {
+            font-size: 42px;
+            font-weight: 700;
+        }
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Navigation")
-st.sidebar.page_link("pages/1_✨_Diet_Plan.py", label="✨ Diet Plan")
-st.sidebar.page_link("pages/2_🧘‍♀️_Yoga_Exercises.py", label="🧘 Yoga Exercises")
-st.sidebar.page_link("pages/3_⏰_Reminders.py", label="⏰ Reminders")
-st.sidebar.page_link("pages/4_📋_Daily_Goals.py", label="📋 Daily Goals")
-st.sidebar.page_link("pages/5_💗_Chat_With_Agent.py", label="💗 Chat With Agent")
+        .subtitle {
+            font-size: 20px;
+            margin-top: -10px;
+        }
 
+        .card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 22px;
+            padding: 25px;
+            box-shadow: 0px 3px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: 0.3s ease;
+            cursor: pointer;
+        }
 
-# --- HOME PAGE CONTENT ---
-col1, col2 = st.columns([1, 1])
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.12);
+        }
 
+        .card img {
+            width: 70px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+    </style>
+""", unsafe_allow_html=True)
+
+# ----------------------------
+# LOGO
+# ----------------------------
+st.image(logo, width=120)
+
+# ----------------------------
+# HERO SECTION
+# ----------------------------
+st.markdown("""
+<div class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="big-title">HerCycle Truth 💗</div>
+        <div class="subtitle">Your PCOS Lifestyle Sister — Here for your Diet, Yoga, Goals & Emotional Support.</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.write("")
+st.write("")
+
+# ----------------------------
+# Feature Cards
+# ----------------------------
+features = {
+    "Diet Plan": ("assets/day1.png", "Diet Plan"),
+    "Yoga & Exercise": ("assets/yoga1.png", "Yoga Exercises"),
+    "Daily Goals": ("assets/water_icon.png", "Daily Goals"),
+    "Reminders": ("assets/bell_icon.png", "Reminders"),
+    "Chat With Agent": ("assets/logo.png", "Chat With Agent")
+}
+
+col1, col2, col3 = st.columns(3)
+col4, col5 = st.columns(2)
+
+# Row 1
 with col1:
-    st.markdown("<h1 style='color:#d63384;'>Welcome to HerCycle Truth 💗</h1>", unsafe_allow_html=True)
-    st.write("""
-    Your personalized PCOS lifestyle companion —  
-    made with love, empathy, and science 🌸  
-    Choose any feature from the left menu.
-    """)
-
+    if st.button("🍽️ Diet Plan", key="d1"):
+        st.switch_page("pages/diet_plan.py")
 with col2:
-    st.image(bg_image, use_column_width=True)
+    if st.button("🧘‍♀️ Yoga Exercises", key="y1"):
+        st.switch_page("pages/yoga_exercises.py")
+with col3:
+    if st.button("📋 Daily Goals", key="g1"):
+        st.switch_page("pages/daily_goals.py")
 
-st.markdown("### 🌼 What you can do here")
-c1, c2, c3 = st.columns(3)
-
-with c1:
-    st.image(diet_img, width=120)
-    st.markdown("**✨ Weekly Diet Plans**")
-
-with c2:
-    st.image(yoga_img, width=120)
-    st.markdown("**🧘 Personalized Yoga**")
-
-with c3:
-    st.image(chat_img, width=120)
-    st.markdown("**💗 Ask Anything Agent**")
+# Row 2
+with col4:
+    if st.button("⏰ Reminders", key="r1"):
+        st.switch_page("pages/reminder.py")
+with col5:
+    if st.button("💗 Chat with Agent", key="c1"):
+        st.switch_page("pages/chat_with_agent.py")
