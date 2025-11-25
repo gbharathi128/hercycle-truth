@@ -1,9 +1,8 @@
 import streamlit as st
-import os
 
 st.title("🥗 7-Day PCOS Diet Plan")
 
-BASE = "assets"   # folder where your images are stored
+BASE = "assets"   # image folder
 
 diet_plan = {
     "Day 1": {
@@ -50,36 +49,62 @@ diet_plan = {
     },
 }
 
-for day, data in diet_plan.items():
-    with st.container():
+# --------- ADD GLOBAL CSS FOR HOVER + TEXT SIZE ----------
+st.markdown("""
+<style>
+.card-box {
+    background: rgba(255, 255, 255, 0.55); /* transparent white */
+    border-radius: 18px;
+    padding: 25px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
 
+.card-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #d63384;
+}
+
+.card-text {
+    font-size: 18px;
+}
+
+.img-hover:hover {
+    transform: scale(1.06);
+    transition: 0.4s ease-in-out;
+}
+
+.img-hover {
+    border-radius: 14px;
+    transition: 0.4s;
+}
+</style>
+""", unsafe_allow_html=True)
+# ---------------------------------------------------------
+
+
+for day, data in diet_plan.items():
+    st.markdown('<div class="card-box">', unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1.1, 2])
+
+    with col1:
+        st.markdown(
+            f'<img src="{data["Image"]}" class="img-hover" width="100%">',
+            unsafe_allow_html=True
+        )
+
+    with col2:
         st.markdown(
             f"""
-            <div style="
-                background-color: #ffe6f2;
-                border-radius: 18px;
-                padding: 20px;
-                margin-bottom: 25px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.07);
-            ">
+            <div class="card-title">✨ {day} Meal Plan</div>
+            <div class="card-text"><b>🍳 Breakfast:</b> {data['Breakfast']}</div>
+            <div class="card-text"><b>🥗 Lunch:</b> {data['Lunch']}</div>
+            <div class="card-text"><b>🍛 Dinner:</b> {data['Dinner']}</div>
             """,
             unsafe_allow_html=True
         )
 
-        col1, col2 = st.columns([1.1, 2])
-
-        with col1:
-            st.image(data["Image"], use_column_width=True)
-
-        with col2:
-            st.markdown(
-                f"""
-                <h3 style="margin-top: -5px;">✨ {day} Meal Plan</h3>
-                <p><strong>🍳 Breakfast:</strong> {data['Breakfast']}</p>
-                <p><strong>🥗 Lunch:</strong> {data['Lunch']}</p>
-                <p><strong>🍛 Dinner:</strong> {data['Dinner']}</p>
-                """,
-                unsafe_allow_html=True
-            )
-
-        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
