@@ -1,11 +1,36 @@
-def pcos_search(query: str):
-    """Search evidence-based information related to PCOS."""
-    return f"[PCOS Search Result] Reliable info about: {query}"
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
 
-def myth_checker(claim: str):
-    """Check if a claim about PCOS is a myth or fact."""
-    return f"[Myth Check] The claim '{claim}' needs careful evaluation. Always verify with medical sources."
+load_dotenv()  # loads GEMINI_API_KEY
 
-def symptom_explain(symptom: str):
-    """Explain the meaning of a PCOS-related symptom."""
-    return f"[Symptom Explanation] The symptom '{symptom}' can appear in many conditions—not only PCOS."
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+def gemini_agent(message):
+    """
+    Sends the user's message to Gemini and returns the AI's reply.
+    """
+
+    model = genai.GenerativeModel("gemini-1.5-flash")
+
+    response = model.generate_content(
+        [
+            {
+                "role": "system",
+                "parts": [
+                    "You are HerCycle — a friendly, empathetic PCOS assistant.",
+                    "Answer clearly, simply, and supportively.",
+                    "Avoid strict medical advice; give general guidance only.",
+                ]
+            },
+            {
+                "role": "user",
+                "parts": [message]
+            }
+        ]
+    )
+
+    try:
+        return response.text
+    except:
+        return str(response)
