@@ -1,24 +1,20 @@
 import streamlit as st
-from graph import graph
+from dotenv import load_dotenv
+import google.generativeai as genai
+import os
 
-st.set_page_config(page_title="HerCycle Truth — PCOS Support", layout="wide")
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-st.title("💗 HerCycle Truth — Your PCOS Support Companion")
+st.set_page_config(
+    page_title="HerCycle Truth — PCOS Support",
+    page_icon="💗",
+    layout="wide"
+)
 
-query = st.text_area("Ask anything about PCOS...")
+st.markdown(
+    "<h1 style='text-align: center; color: #ff6fb3;'>💗 HerCycle Truth — Your PCOS Support Companion</h1>",
+    unsafe_allow_html=True
+)
 
-if st.button("Send"):
-    result = graph.invoke({
-        "messages": [{"role": "user", "content": query}]
-    })
-
-    # Extract Gemini text safely
-    msg = result["messages"][-1]
-
-    try:
-        text = msg.candidates[0].content.parts[0].text
-    except:
-        text = str(msg)
-
-    st.markdown("### 💬 Response")
-    st.write(text)
+st.write("Use the left sidebar to explore diet plans, yoga, reminders, goals, and chat with the agent.")
