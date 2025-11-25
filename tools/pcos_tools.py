@@ -6,7 +6,8 @@ import google.generativeai as genai
 load_dotenv()
 
 # Configure Gemini API Key
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=API_KEY)
 
 SYSTEM_INSTRUCTIONS = """
 You are HerCycle Truth — an emotionally supportive AI sister for women with PCOS.
@@ -28,7 +29,7 @@ def ask_agent(user_input: str) -> str:
 
     try:
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="models/gemini-1.5-pro",
             generation_config={"temperature": 0.7}
         )
 
@@ -43,7 +44,7 @@ def ask_agent(user_input: str) -> str:
         return format_reply(reply)
 
     except Exception as e:
-        print("ERROR:", e)
+        print("CHAT ERROR:", e)
         return "Oops sweet girl… something went wrong. Try again? 💛"
 
 # Optional small tools
