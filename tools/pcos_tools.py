@@ -44,7 +44,7 @@ def ask_agent(user_input: str) -> str:
         return format_reply(reply)
 
     except Exception as e:
-    return f"⚠️ Debug Error: {e}"
+        return f"⚠️ Debug Error: {e}"
 
 
 # Optional small tools
