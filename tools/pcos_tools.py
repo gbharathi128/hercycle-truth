@@ -1,36 +1,21 @@
 import os
-from dotenv import load_dotenv
 import google.generativeai as genai
+from dotenv import load_dotenv
 
-load_dotenv()  # loads GEMINI_API_KEY
-
+load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 def gemini_agent(message):
-    """
-    Sends the user's message to Gemini and returns the AI's reply.
-    """
-
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-1.5-pro")  # safer than flash
 
     response = model.generate_content(
-        [
-            {
-                "role": "system",
-                "parts": [
-                    "You are HerCycle — a friendly, empathetic PCOS assistant.",
-                    "Answer clearly, simply, and supportively.",
-                    "Avoid strict medical advice; give general guidance only.",
-                ]
-            },
-            {
-                "role": "user",
-                "parts": [message]
-            }
+        input=[
+            {"role": "system", "content": (
+                "You are HerCycle — a friendly, empathetic PCOS assistant. "
+                "Answer clearly, simply, and supportively. Avoid strict medical advice."
+            )},
+            {"role": "user", "content": message}
         ]
     )
 
-    try:
-        return response.text
-    except:
-        return str(response)
+    return response.text
