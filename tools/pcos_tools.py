@@ -3,10 +3,9 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import streamlit as st
 
-# Load .env locally
 load_dotenv()
 
-# GEMINI API key (works on local and Streamlit Cloud secrets)
+# GEMINI API key (works locally and on Streamlit Cloud)
 API_KEY = os.getenv("GEMINI_API_KEY") or st.secrets["GEMINI"]["GEMINI_API_KEY"]
 genai.configure(api_key=API_KEY)
 
@@ -16,14 +15,21 @@ def gemini_agent(message: str) -> str:
     """
     model = genai.GenerativeModel("text-bison-001")  # safe model
 
+    # Old-style syntax (positional list)
     response = model.generate_content(
-        input=[
-            {"role": "system", "content": (
-                "You are HerCycle — a friendly, empathetic PCOS assistant. "
-                "Answer clearly, simply, and supportively. "
-                "Avoid strict medical advice."
-            )},
-            {"role": "user", "content": message}
+        [
+            {
+                "role": "system",
+                "parts": [
+                    "You are HerCycle — a friendly, empathetic PCOS assistant.",
+                    "Answer clearly, simply, and supportively.",
+                    "Avoid strict medical advice."
+                ]
+            },
+            {
+                "role": "user",
+                "parts": [message]
+            }
         ]
     )
 
