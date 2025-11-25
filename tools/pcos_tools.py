@@ -1,16 +1,31 @@
+import os
 import streamlit as st
 import google.generativeai as genai
+from dotenv import load_dotenv
 
-# Load GEMINI API key from Streamlit Secrets
-API_KEY = st.secrets["GEMINI"]["GEMINI_API_KEY"]
+# Load local .env (for local testing)
+load_dotenv()
+
+# Try to get GEMINI_API_KEY from Streamlit Secrets, fallback to environment variable
+try:
+    API_KEY = st.secrets["GEMINI"]["GEMINI_API_KEY"]
+except KeyError:
+    API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    raise ValueError(
+        "GEMINI_API_KEY not found! Set it in .env (local) or Streamlit Secrets (cloud)."
+    )
+
+# Configure Gemini API
 genai.configure(api_key=API_KEY)
+
 
 def gemini_agent(message: str) -> str:
     """
     Sends the user's message to Gemini and returns the AI's reply.
-    Uses a safe model to avoid NotFound errors.
     """
-    model = genai.GenerativeModel("models/text-bison-001")  # safest model
+    model = genai.GenerativeModel("models/text-bison-001")  # safe model
 
     response = model.generate_content(
         [
@@ -22,10 +37,7 @@ def gemini_agent(message: str) -> str:
                     "Avoid strict medical advice."
                 ]
             },
-            {
-                "role": "user",
-                "parts": [message]
-            }
+            {"role": "user", "parts": [message]}
         ]
     )
 
