@@ -49,15 +49,15 @@ diet_plan = {
     },
 }
 
-# 🌸 Transparent card + hover + bigger text
+# 🌸 Styling (transparent card + hover)
 st.markdown("""
 <style>
 .card {
     background: rgba(255, 255, 255, 0.6);
-    padding: 20px;
-    border-radius: 18px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 22px;
+    border-radius: 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     backdrop-filter: blur(8px);
 }
 
@@ -65,33 +65,33 @@ st.markdown("""
     font-size: 26px;
     font-weight: bold;
     color: #d63384;
+    padding-bottom: 10px;
 }
 
 .card-text {
-    font-size: 18px;
+    font-size: 19px;
+    margin-bottom: 6px;
 }
 
 .img-hover {
-    border-radius: 12px;
-    transition: 0.35s;
+    transition: 0.35s ease-in-out;
+    border-radius: 16px;
 }
 
 .img-hover:hover {
-    transform: scale(1.06);
+    transform: scale(1.04);
 }
 </style>
 """, unsafe_allow_html=True)
 
+# 🖼️ FIX: load images using st.image()
 for day, data in diet_plan.items():
-
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    col1, col2 = st.columns([1.3, 2])
+
+    col1, col2 = st.columns([1.2, 2])
 
     with col1:
-        st.markdown(
-            f'<img src="{data["Image"]}" class="img-hover" width="100%">',
-            unsafe_allow_html=True
-        )
+        st.image(data["Image"], use_column_width=True)
 
     with col2:
         st.markdown(
