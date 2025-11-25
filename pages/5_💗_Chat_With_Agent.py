@@ -1,42 +1,38 @@
 import streamlit as st
-from tools.pcos_tools import ask_agent
+import sys
+import os
 
-st.set_page_config(page_title="Chat With HerCycle Agent", page_icon="💗")
+# --- Fix import path (very important) ---
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+sys.path.append(PARENT_DIR)
 
-# ---- LOAD IMAGES ----
-logo = "assets/logo.png"
-banner = "assets/banner_home.png"
+from tools.pcos_tools import ask_agent   # now it will import correctly
 
-# ---- SHOW IMAGES ----
-st.image(logo, width=120)
-st.image(banner, use_column_width=True)
+# --- Page UI ---
+st.set_page_config(page_title="HerCycle Agent 💗", page_icon="💗")
 
-# ---- PAGE HEADER ----
-st.title("💗 Chat With Your PCOS Support Agent")
-st.write("Ask anything about PCOS, diet, periods, symptoms, workouts, mental health, and more!")
+st.title("💗 Chat With Your PCOS Agent")
+st.write("Ask anything about PCOS, diet, symptoms, motivation, lifestyle, myths… I'm here for you 🤍")
 
-# ---- USER INPUT ----
-user_input = st.text_input("Type your question here...", "")
+# Chat input
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+user_msg = st.text_input("Write your question:")
 
 if st.button("Ask"):
-    if user_input.strip() == "":
-        st.warning("Please enter a question.")
-    else:
-        with st.spinner("Thinking..."):
-            reply = ask_agent(user_input)
+    if user_msg:
+        # Add user message
+        st.session_state.chat_history.append(("You", user_msg))
 
-        # ---- SHOW RESPONSE ----
-        st.markdown(
-            f"""
-            <div style="
-                background-color:#ffe6f2;
-                padding:15px; 
-                border-radius:10px; 
-                border-left:6px solid #ff4da6;
-                margin-top:10px;
-            ">
-                <b>💗 Agent:</b> {reply}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        # Agent response
+        reply = ask_agent(user_msg)
+        st.session_state.chat_history.append(("HerCycle Agent 💗", reply))
+
+# Show chat history
+for sender, message in st.session_state.chat_history:
+    if sender == "You":
+        st.markdown(f"**🧍‍♀️ You:** {message}")
+    else:
+        st.markdown(f"**🤍 HerCycle Agent:** {message}")
