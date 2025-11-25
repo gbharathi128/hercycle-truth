@@ -19,9 +19,37 @@ if st.button("Send") and query.strip():
     reply = gemini_agent(query)
     st.session_state.chat.append(("ai", reply))
 
-# Display conversation
+# Display chat with bubbles
 for role, text in st.session_state.chat:
     if role == "user":
-        st.markdown(f"**🧍‍♀️ You:** {text}")
+        st.markdown(
+            f"""
+            <div style="
+                background-color:#f0f0f0;
+                padding:10px;
+                border-radius:10px;
+                margin:10px 0;
+                width:fit-content;
+                max-width:80%;
+            ">
+                🧍‍♀️ <b>You:</b> {text}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     else:
-        st.markdown(f"**🤖 HerCycle Agent:** {text}")
+        st.markdown(
+            f"""
+            <div style="
+                background-color:#ffc0cb;
+                padding:10px;
+                border-radius:10px;
+                margin:10px 0;
+                width:fit-content;
+                max-width:80%;
+            ">
+                🤖 <b>HerCycle Agent:</b> {text}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
