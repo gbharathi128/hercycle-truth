@@ -1,6 +1,16 @@
 import streamlit as st
-import os
-import sys
+from graph import graph
 
-# Directly open chat page
-st.switch_page("pages/5_💗_Chat_With_Agent.py")
+st.set_page_config(page_title="HerCycle Truth — PCOS Support", layout="wide")
+
+st.title("💗 HerCycle Truth — Your PCOS Support Companion")
+
+query = st.text_area("Ask anything about PCOS...")
+
+if st.button("Send"):
+    result = graph.invoke({
+        "messages": [{"role": "user", "content": query}]
+    })
+
+    ai_response = result["messages"][-1]
+    st.write(ai_response)
