@@ -1,4 +1,10 @@
 import google.generativeai as genai
+import os
+
+# ---------------------------------------------------
+# INITIALIZE GEMINI API CORRECTLY (IMPORTANT)
+# ---------------------------------------------------
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # -------------------------------------------
 # PCOS AGENT — BASE LOGIC
@@ -31,10 +37,12 @@ def ask_agent(user_input: str) -> str:
     """
 
     try:
-        response = genai.GenerativeModel(
+        model = genai.GenerativeModel(
             model_name="models/gemini-1.5-pro",
             generation_config={"temperature": 0.7}
-        ).generate_content(
+        )
+
+        response = model.generate_content(
             [
                 {"role": "system", "parts": [SYSTEM_INSTRUCTIONS]},
                 {"role": "user", "parts": [user_input]},
@@ -47,21 +55,17 @@ def ask_agent(user_input: str) -> str:
     except Exception as e:
         return "Oops sweet girl… something went wrong. Try again? 💛"
 
-
 # -------------------------------------------
-# EXTRA OPTIONAL TOOL (USED BY GRAPH BUT SAFE)
+# OPTIONAL TOOLS
 # -------------------------------------------
 
 def pcos_search(query: str):
-    """Gentle informational search tool."""
     return f"Here’s what I found about: {query}. (Soft explanation coming soon 💗)"
 
 def myth_checker(statement: str):
-    """Check if it's a myth."""
     if "cure" in statement.lower():
         return "Baby, PCOS cannot be cured — but it can be beautifully managed 💗"
     return "Let me explain this softly for you… 💗"
 
 def symptom_explain(symptom: str):
-    """Explain symptoms kindly."""
     return f"Feeling {symptom}? Let me tell you what it usually means, softly… 💗"
