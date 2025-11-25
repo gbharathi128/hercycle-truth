@@ -1,5 +1,6 @@
 streamlit
-python-dotenv
 google-generativeai
-langgraph
-protobuf
+python-dotenv
+matplotlib
+numpy
+pillow
