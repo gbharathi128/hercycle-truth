@@ -3,6 +3,14 @@ from tools.pcos_tools import ask_agent
 
 st.set_page_config(page_title="Chat With HerCycle Agent", page_icon="💗")
 
+# ---- LOAD IMAGES ----
+logo = "assets/logo.png"
+banner = "assets/banner_home.png"
+
+# ---- SHOW IMAGES ----
+st.image(logo, width=120)
+st.image(banner, use_column_width=True)
+
 # ---- PAGE HEADER ----
 st.title("💗 Chat With Your PCOS Support Agent")
 st.write("Ask anything about PCOS, diet, periods, symptoms, workouts, mental health, and more!")
@@ -32,4 +40,3 @@ if st.button("Ask"):
             """,
             unsafe_allow_html=True
         )
-
