@@ -12,5 +12,13 @@ if st.button("Send"):
         "messages": [{"role": "user", "content": query}]
     })
 
-    ai_response = result["messages"][-1]
-    st.write(ai_response)
+    # Extract Gemini text safely
+    msg = result["messages"][-1]
+
+    try:
+        text = msg.candidates[0].content.parts[0].text
+    except:
+        text = str(msg)
+
+    st.markdown("### 💬 Response")
+    st.write(text)
