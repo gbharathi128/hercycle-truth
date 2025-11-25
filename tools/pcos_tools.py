@@ -44,8 +44,8 @@ def ask_agent(user_input: str) -> str:
         return format_reply(reply)
 
     except Exception as e:
-        print("CHAT ERROR:", e)
-        return "Oops sweet girl… something went wrong. Try again? 💛"
+    return f"⚠️ Debug Error: {e}"
+
 
 # Optional small tools
 def pcos_search(query: str):
