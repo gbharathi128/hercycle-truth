@@ -3,40 +3,27 @@ import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Load local .env (for local testing)
 load_dotenv()
-
-# Try to get GEMINI_API_KEY from Streamlit Secrets, fallback to environment variable
 try:
     API_KEY = st.secrets["GEMINI"]["GEMINI_API_KEY"]
 except KeyError:
     API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise ValueError(
-        "GEMINI_API_KEY not found! Set it in .env (local) or Streamlit Secrets (cloud)."
-    )
+    raise ValueError("GEMINI_API_KEY not found!")
 
-# Configure Gemini API
 genai.configure(api_key=API_KEY)
 
-
 def gemini_agent(message: str) -> str:
-    """
-    Sends the user's message to Gemini and returns the AI's reply.
-    """
-    model = genai.GenerativeModel("models/text-bison-001")  # safe model
+    model = genai.GenerativeModel("models/gemini-2.5-flash")  # Change to a valid model
 
     response = model.generate_content(
         [
-            {
-                "role": "system",
-                "parts": [
-                    "You are HerCycle — a friendly, empathetic PCOS assistant.",
-                    "Answer clearly, simply, and supportively.",
-                    "Avoid strict medical advice."
-                ]
-            },
+            {"role": "system", "parts": [
+                "You are HerCycle — a friendly, empathetic PCOS assistant.",
+                "Answer clearly, simply, and supportively.",
+                "Avoid strict medical advice."
+            ]},
             {"role": "user", "parts": [message]}
         ]
     )
@@ -44,4 +31,4 @@ def gemini_agent(message: str) -> str:
     try:
         return response.text
     except Exception as e:
-        return f"Sorry, something went wrong: {e}"
+        return f"Error: {e}"
