@@ -1,24 +1,29 @@
 import streamlit as st
-from graph import graph
+from tools.pcos_tools import gemini_agent
 
-st.set_page_config(page_title="HerCycle Truth — PCOS Support", layout="wide")
+st.set_page_config(page_title="HerCycle — PCOS AI Agent", layout="wide")
 
-st.title("💗 HerCycle Truth — Your PCOS Support Companion")
+st.title("💗 HerCycle — Your PCOS AI Companion")
 
-query = st.text_area("Ask anything about PCOS...")
+# Store chat history
+if "chat" not in st.session_state:
+    st.session_state.chat = []
 
-if st.button("Send"):
-    result = graph.invoke({
-        "messages": [{"role": "user", "content": query}]
-    })
+query = st.text_input("Ask anything about PCOS...")
 
-    # Extract Gemini text safely
-    msg = result["messages"][-1]
+if st.button("Send") and query.strip():
+    # Save user message
+    st.session_state.chat.append(("user", query))
 
-    try:
-        text = msg.candidates[0].content.parts[0].text
-    except:
-        text = str(msg)
+    # Get AI response
+    reply = gemini_agent(query)
 
-    st.markdown("### 💬 Response")
-    st.write(text)
+    # Save AI response
+    st.session_state.chat.append(("ai", reply))
+
+# Display chat
+for role, text in st.session_state.chat:
+    if role == "user":
+        st.markdown(f"**🧍‍♀️ You:** {text}")
+    else:
+        st.markdown(f"**🤖 HerCycle Agent:** {text}")
