@@ -1,52 +1,128 @@
-# graph.py
 import os
+import inspect
+import operator
+from typing import TypedDict, Annotated
+
 from dotenv import load_dotenv
+import google.generativeai as genai
+
+from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.sqlite import SqliteSaver
+
+# Load API key from .env
 load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Try to import Gemini SDK
-try:
-    import google.generativeai as genai
-    GEMINI_AVAILABLE = True
-except Exception:
-    GEMINI_AVAILABLE = False
-
+# ----------------------------
+# TOOLS (your functions)
+# ----------------------------
 from tools.pcos_tools import pcos_search, myth_checker, symptom_explain
 
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
-USE_GEMINI = bool(GEMINI_KEY and GEMINI_AVAILABLE)
+TOOLS = [pcos_search, myth_checker, symptom_explain]
 
-if USE_GEMINI:
-    genai.configure(api_key=GEMINI_KEY)
-    model = genai.GenerativeModel(model_name="models/gemini-1.5-pro",
-                                 generation_config={"temperature": 0.6})
-else:
-    model = None
+def to_schema(fn):
+    """Convert python tools into Gemini-compatible schema."""
+    sig = inspect.signature(fn)
+    props = {name: {"type": "string"} for name in sig.parameters}
+    req = list(sig.parameters.keys())
 
-def local_responder(user_text: str) -> str:
-    txt = user_text.strip().lower()
-    if "diet" in txt or "weekly" in txt:
-        return "You can generate a weekly diet plan from the Diet tab. Choose your preference (veg/vegan/non-veg) and goal."
-    if "seed cycling" in txt or "spearmint" in txt or "cure" in txt:
-        return myth_checker(user_text)
-    if any(k in txt for k in ["symptom", "hair", "acne", "irregular", "period"]):
-        return pcos_search(user_text)
-    return ("Hi—I'm HerCycle Truth. I can explain PCOS symptoms, generate diet plans, and check myths. "
-            "Try: 'Give me a weekly diet plan' or 'Does seed cycling cure PCOS?'")
+    return {
+        "name": fn.__name__,
+        "description": fn.__doc__,
+        "input_schema": {
+            "type": "object",
+            "properties": props,
+            "required": req
+        }
+    }
 
-def invoke(payload: dict):
-    messages = payload.get("messages", [])
-    if not messages:
-        return {"messages":[{"role":"assistant","content":"No input provided."}]}
-    user_text = messages[-1].get("content","")
-    if USE_GEMINI and model is not None:
-        try:
-            # simple chat with system prompt
-            history = [{"role":"system","content":"You are HerCycle Truth — empathetic, never give medical advice."}] + messages
-            gem_history = [{"role":m.get("role","user"), "parts":[{"text": m.get("content","")}]} for m in history]
-            chat = model.start_chat(history=gem_history)
-            resp = chat.send_message("")  # let model respond to history
-            return {"messages":[resp]}
-        except Exception as e:
-            return {"messages":[{"role":"assistant","content":f"[Gemini error, fallback] {local_responder(user_text)}"}]}
-    else:
-        return {"messages":[{"role":"assistant","content": local_responder(user_text)}]}
+gemini_tools = [to_schema(fn) for fn in TOOLS]
+
+# ----------------------------
+# Gemini Model
+# ----------------------------
+model = genai.GenerativeModel(
+    model_name="models/gemini-1.5-pro",
+    tools=gemini_tools,
+    generation_config={"temperature": 0.6}
+)
+
+# ----------------------------
+# Utility
+# ----------------------------
+def convert(messages):
+    formatted = []
+    for m in messages:
+        formatted.append({"role": m["role"], "parts": [{"text": m["content"]}]})
+    return formatted
+
+def detect_tool_call(result):
+    try:
+        parts = result.candidates[0].content.parts
+        return any(getattr(p, "function_call", None) for p in parts)
+    except:
+        return False
+
+# ----------------------------
+# Agent Nodes
+# ----------------------------
+def supervisor(state):
+    system_prompt = """
+You are HerCycle Truth — an emotionally supportive AI sister for women with PCOS.
+Rules:
+- Be empathetic
+- Never give medical advice
+- Cite trusted medical bodies gently
+- Debunk myths kindly
+- Use tools only when helpful
+"""
+
+    msgs = convert([{"role": "system", "content": system_prompt}] + state["messages"])
+
+    chat = model.start_chat(history=msgs)
+    result = chat.send_message("")
+
+    return {"messages": [result]}
+
+def tool_executor(state):
+    last = state["messages"][-1]
+    parts = last.candidates[0].content.parts
+
+    for p in parts:
+        if hasattr(p, "function_call"):
+            fn_name = p.function_call.name
+            args = p.function_call.args
+
+            fn = next(f for f in TOOLS if f.__name__ == fn_name)
+            output = fn(**args)
+
+            return {"messages": [{"role": "tool", "content": str(output)}]}
+
+    return {"messages": []}
+
+# ----------------------------
+# State Definition
+# ----------------------------
+class AgentState(TypedDict):
+    messages: Annotated[list, operator.add]
+
+# ----------------------------
+# Build Graph
+# ----------------------------
+builder = StateGraph(AgentState)
+
+builder.add_node("supervisor", supervisor)
+builder.add_node("tools", tool_executor)
+
+builder.add_edge(START, "supervisor")
+
+builder.add_conditional_edges(
+    "supervisor",
+    lambda s: "tools" if detect_tool_call(s["messages"][-1]) else END
+)
+
+builder.add_edge("tools", "supervisor")
+
+memory = SqliteSaver.from_conn_string(":memory:")
+
+graph = builder.compile(checkpointer=memory)
