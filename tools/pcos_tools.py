@@ -1,44 +1,34 @@
-import google.generativeai as genai
 import os
+from dotenv import load_dotenv
+import google.generativeai as genai
 
-# ---------------------------------------------------
-# INITIALIZE GEMINI API CORRECTLY (IMPORTANT)
-# ---------------------------------------------------
+# Load .env file
+load_dotenv()
+
+# Configure Gemini API Key
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-# -------------------------------------------
-# PCOS AGENT — BASE LOGIC
-# -------------------------------------------
 
 SYSTEM_INSTRUCTIONS = """
 You are HerCycle Truth — an emotionally supportive AI sister for women with PCOS.
 
-Rules you MUST follow:
+Rules:
 • Be warm, kind and non-judgmental.
-• Never give medical advice or prescriptions.
-• You may give lifestyle guidance like diet, self-care, sleep, exercise, yoga.
-• You may debunk myths gently.
-• Encourage the user emotionally.
-• Use simple, soft language (girly aesthetic tone).
+• Never give medical advice or prescribe medicines.
+• You may give lifestyle guidance (diet, yoga, sleep, habits).
+• You may debunk myths softly.
+• Encourage and support the user emotionally.
+• Use soft, girly, comforting language.
 """
 
 def format_reply(text: str) -> str:
-    """Make responses softer, more aesthetic."""
     return text.replace("PCOS", "PCOS 💗")
 
-# -------------------------------------------
-# AGENT TOOL (CALLED BY STREAMLIT CHAT PAGE)
-# -------------------------------------------
-
 def ask_agent(user_input: str) -> str:
-    """
-    Main function the chat page calls.
-    Sends user question → Gemini → returns soft reply.
-    """
+    """Main chat logic"""
 
     try:
         model = genai.GenerativeModel(
-            model_name="models/gemini-1.5-pro",
+            model_name="gemini-1.5-pro",
             generation_config={"temperature": 0.7}
         )
 
@@ -53,19 +43,17 @@ def ask_agent(user_input: str) -> str:
         return format_reply(reply)
 
     except Exception as e:
+        print("ERROR:", e)
         return "Oops sweet girl… something went wrong. Try again? 💛"
 
-# -------------------------------------------
-# OPTIONAL TOOLS
-# -------------------------------------------
-
+# Optional small tools
 def pcos_search(query: str):
-    return f"Here’s what I found about: {query}. (Soft explanation coming soon 💗)"
+    return f"Here’s what I found about {query} 💗 (More info coming soon!)"
 
 def myth_checker(statement: str):
     if "cure" in statement.lower():
-        return "Baby, PCOS cannot be cured — but it can be beautifully managed 💗"
-    return "Let me explain this softly for you… 💗"
+        return "Baby, PCOS cannot be cured — but it can be managed beautifully 💗"
+    return "Let me explain that softly for you… 💗"
 
 def symptom_explain(symptom: str):
-    return f"Feeling {symptom}? Let me tell you what it usually means, softly… 💗"
+    return f"Feeling {symptom}? Here’s what it usually means, softly… 💗"
