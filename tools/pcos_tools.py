@@ -3,53 +3,43 @@ import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Load local .env (for local testing)
+# Load environment variables
 load_dotenv()
 
-# Load GEMINI_API_KEY from Streamlit Secrets or environment variable
+# Get API key from .env or Streamlit secrets (cloud safe)
 try:
     API_KEY = st.secrets["GEMINI"]["GEMINI_API_KEY"]
 except KeyError:
     API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise ValueError(
-        "GEMINI_API_KEY not found! Set it in .env (local) or Streamlit Secrets (cloud)."
-    )
+    raise ValueError("❌ GEMINI_API_KEY missing! Add it to .env")
 
+# Configure Gemini
 genai.configure(api_key=API_KEY)
 
+# System Instructions
+SYSTEM_PROMPT = """
+You are HerCycle 💗 — a soft, supportive PCOS companion.
+Be caring, emotional, human-like, and compassionate.
+Give lifestyle guidance like diet, exercise, motivation, myths, symptoms.
+Never give medical prescriptions or drugs.
+Talk like a supportive elder sister.
+"""
 
 def gemini_agent(message: str) -> str:
-    """
-    Sends the user's message to Gemini and returns the AI's reply.
-    Uses fallback if PermissionDenied occurs.
-    """
-    # Use the most likely accessible model; you can replace with your available model
-    model_name = "models/gemini-2.5-flash"
-
-    model = genai.GenerativeModel(model_name)
-
-    # Optimized system prompt for accurate PCOS answers
-    system_prompt = (
-        "You are HerCycle — a friendly, empathetic, and knowledgeable PCOS assistant. "
-        "Answer questions clearly and accurately. "
-        "Provide general guidance, tips for lifestyle, diet, and exercises. "
-        "Avoid strict medical advice. "
-        "Use simple, easy-to-understand language and be supportive."
-    )
+    """Send message to Gemini and return friendly reply"""
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
 
     try:
         response = model.generate_content(
             [
-                {"role": "system", "parts": [system_prompt]},
+                {"role": "system", "parts": [SYSTEM_PROMPT]},
                 {"role": "user", "parts": [message]},
             ]
         )
         return response.text
-    except genai.error.PermissionError:
-        return (
-            "Sorry, this AI model cannot be accessed with your API key. "
-            "Please check your API permissions."
-        )
-    except Exception as e
+
+    except Exception as e:
+        print("DEBUG ERROR:", e)
+        return "Oops babe… something went wrong 💛 Try again?"
