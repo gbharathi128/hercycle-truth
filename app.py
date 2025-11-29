@@ -1,17 +1,19 @@
 import streamlit as st
-from pcos_tools import gemini_agent
+from graph import main_chat
 
-st.set_page_config(page_title="HerCycle — PCOS Chat", page_icon="💗")
+st.set_page_config(page_title="HerCycle AI Agent", page_icon="💗")
 
-st.title("💗 HerCycle — Chat With Your PCOS Sister")
-st.write("Ask anything about PCOS, periods, mood, diet, symptoms, motivation… I’m here for you 🤍")
+st.title("💗 Chat With HerCycle Agent")
 
-user_input = st.text_input("Write your question:")
+if "chat" not in st.session_state:
+    st.session_state.chat = []
 
-if st.button("Send"):
-    if user_input.strip() == "":
-        st.warning("Please type something first 🥺")
-    else:
-        reply = gemini_agent(user_input)
-        st.chat_message("user").write(user_input)
-        st.chat_message("assistant").write(reply)
+user_input = st.text_input("🧍‍♀️ You:", "")
+
+if st.button("Send") and user_input.strip() != "":
+    response = main_chat(user_input)
+    st.session_state.chat.append(("🧍‍♀️ You", user_input))
+    st.session_state.chat.append(("🤍 HerCycle Agent", response))
+
+for role, text in st.session_state.chat:
+    st.markdown(f"**{role}:** {text}")
