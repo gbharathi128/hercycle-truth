@@ -1,45 +1,36 @@
 import os
-import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Get API key from .env or Streamlit secrets (cloud safe)
-try:
-    API_KEY = st.secrets["GEMINI"]["GEMINI_API_KEY"]
-except KeyError:
-    API_KEY = os.getenv("GEMINI_API_KEY")
-
-if not API_KEY:
-    raise ValueError("❌ GEMINI_API_KEY missing! Add it to .env")
-
-# Configure Gemini
+API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
 
-# System Instructions
-SYSTEM_PROMPT = """
-You are HerCycle 💗 — a soft, supportive PCOS companion.
-Be caring, emotional, human-like, and compassionate.
-Give lifestyle guidance like diet, exercise, motivation, myths, symptoms.
-Never give medical prescriptions or drugs.
-Talk like a supportive elder sister.
-"""
-
 def gemini_agent(message: str) -> str:
-    """Send message to Gemini and return friendly reply"""
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
+    """
+    Sends the user's message to Gemini and returns the AI's reply.
+    """
+
+    model_name = "models/gemini-2.5-flash"
+    model = genai.GenerativeModel(model_name)
+
+    system_prompt = (
+        "You are HerCycle — a friendly, empathetic, and knowledgeable PCOS assistant. "
+        "Answer questions clearly and accurately. "
+        "Provide general guidance, lifestyle tips, diet help, exercises and motivation. "
+        "Avoid strict medical or prescription advice. "
+        "Use soft language and be very supportive."
+    )
 
     try:
         response = model.generate_content(
             [
-                {"role": "system", "parts": [SYSTEM_PROMPT]},
+                {"role": "system", "parts": [system_prompt]},
                 {"role": "user", "parts": [message]},
             ]
         )
         return response.text
 
     except Exception as e:
-        print("DEBUG ERROR:", e)
-        return "Oops babe… something went wrong 💛 Try again?"
+        return f"Oops babe… something went wrong 💛 Try again?\n\nError: {str(e)}"
